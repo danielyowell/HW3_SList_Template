@@ -146,24 +146,38 @@ public:
     // (Here, "7" is bigger than n-1, so add "3" to the tail.)  
     
     void Add(int val, int idx) {
-        Node* newNode{}; // are the curly brackets necessary?
-        newNode->SetData(val);
-        Node* iterator = head;
+        Node newNode;
+        newNode.SetData(val);
+                cout << "newNode contains: " << newNode.GetData() << endl;
+        Node* newNodePtr = &newNode;
 
-        if (idx > size - 1) { // node goes at end of list
-            while (iterator->GetLink_Next() != NULL) { // keep searching until null pointer reached (iterator = last node in linked list)
-                iterator = iterator->GetLink_Next();
-            }
-            iterator->SetLink_Next(newNode);
+        if (head == nullptr) {
+            head = newNodePtr;
         }
-        else { // place node between two other nodes
-            for (int i = 0; i < idx; i++) {
-                iterator = iterator->GetLink_Next();
+        else if (idx > size - 1) { // node goes at end of list
+            Node* temp = head;
+            while (temp != NULL) {
+                cout << temp->GetData() << endl;
+                temp = temp->GetLink_Next();
             }
-            newNode->SetLink_Next( iterator->GetLink_Next() );
-            iterator->SetLink_Next(newNode);
+            temp->SetData(val); // ???
+            temp->SetLink_Next(newNodePtr);
+        }
+        else { // add node somewhere before end of list
+            cout << "add node somewhere before end of list" << endl;
+            Node* temp = head;
+            for (int i = 0; i < idx; i++) {
+                temp = temp->GetLink_Next();
+            }
+            cout << "newNode.SetLink_Next( temp->GetLink_Next() );" << endl;
+            newNode.SetLink_Next( temp->GetLink_Next() );
+            cout << "temp->SetLink_Next(newNodePtr);" << endl;
+            temp->SetData(val); // ???
+            cout << "temp data: " << temp->GetData() << endl;
+            temp->SetLink_Next(newNodePtr);
         }
         size++;
+
     };
 
     // *******************
@@ -277,13 +291,16 @@ int main()
     SList x;
     int mode, value, idx, key; int temp; // I added int temp, is this necessary?
 
-    cin >> mode >> value >> idx >> key;
+    cin >> mode >> value >> idx >> key; // mode, value, index, key
 
     for (int i = 0; i < 4; i++) {
+        cout << "Add new node at index 0" << endl;
         cin >> temp;
         x.Add(temp, 0);
-    }
-
+    } 
+    cout << "head data: " << x.GetHead()->GetData() << endl;
+    cout << "next node data: " << x.GetHead()->GetLink_Next()->GetData() << endl;
+    cout << "PRINT:" << endl;
     switch (mode) {
 
     case 1: // check your add function with idx = 0
