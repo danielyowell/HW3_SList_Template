@@ -66,7 +66,7 @@ Node* Node::GetLink_Next() {
 class SList {
 private:
     Node* head;
-    int size = 1; // DY: I added this
+    int size = 0; // DY: I added this. Should it be 0 or 1???
 public:
     // The following four functions are given to you. 
     // The SetHead and GetHead functions are only useful for merge sort.
@@ -109,11 +109,14 @@ public:
     int LinearSearch(int key) {
         Node* SearchNode = GetHead(); // start at head
         int i = 0;
+        cout << "Looking for: " << endl;
         while (SearchNode->GetLink_Next() != NULL) { // keep searching until null pointer reached
             if (SearchNode->GetData() == key) {
+                cout << "Found: " << SearchNode->GetData() << endl;
                 return i;
             }
             else {
+                cout << "Not found: " << SearchNode->GetData() << endl;
                 i++;
                 SearchNode = SearchNode->GetLink_Next(); // set SearchNode to the next node in the list
             }
@@ -146,35 +149,76 @@ public:
     // (Here, "7" is bigger than n-1, so add "3" to the tail.)  
     
     void Add(int val, int idx) {
-        Node newNode;
-        newNode.SetData(val);
-                cout << "newNode contains: " << newNode.GetData() << endl;
-        Node* newNodePtr = &newNode;
+        
+        Node* newNode = new Node();
+        newNode->SetData(val);
+        cout << "New node with value " << newNode->GetData() << endl;
 
-        if (head == nullptr) {
-            head = newNodePtr;
+        if (head == nullptr) { // if there is no head
+            head = newNode; // set newNode as the head
         }
         else if (idx > size - 1) { // node goes at end of list
+            
+            cout << "   Node goes at end of list" << endl;
             Node* temp = head;
-            while (temp != NULL) {
-                cout << temp->GetData() << endl;
+            cout << "   head is " << temp->GetData() << endl;
+
+            while (temp->GetLink_Next() != NULL) {
                 temp = temp->GetLink_Next();
+                cout << "   iterating thru list, current data: " << temp->GetData() << endl;    
             }
-            temp->SetData(val); // ???
-            temp->SetLink_Next(newNodePtr);
+
+            cout << "   next node is null." << endl;
+            temp->SetLink_Next(newNode);
+            newNode->SetLink_Next(NULL); // shouldn't be necessary, but just in case
+            
+            cout << "   SUCCESSFULLY ADDED NODE TO END OF LIST (large index)" << endl;
+
         }
         else { // add node somewhere before end of list
-            cout << "add node somewhere before end of list" << endl;
+            cout << "   Add node somewhere before end of list" << endl;
             Node* temp = head;
             for (int i = 0; i < idx; i++) {
                 temp = temp->GetLink_Next();
+                cout << "   iterating thru list, current data: " << temp->GetData() << endl;
             }
-            cout << "newNode.SetLink_Next( temp->GetLink_Next() );" << endl;
-            newNode.SetLink_Next( temp->GetLink_Next() );
-            cout << "temp->SetLink_Next(newNodePtr);" << endl;
-            temp->SetData(val); // ???
-            cout << "temp data: " << temp->GetData() << endl;
-            temp->SetLink_Next(newNodePtr);
+            
+            cout << "   temp node represents node at index; has value " << temp->GetData() << endl;
+            cout << "   newNode has value " << newNode->GetData() << endl;
+            cout << "   We want to insert newNode where temp is and have it connect to temp" << endl;
+            
+            /*
+            CASE 1: temp points to another node
+            - Make newNode point to temp->next
+            - Make temp point to newNode
+            - Swap values of temp and newNode
+            */
+
+            if (temp->GetLink_Next() != NULL) {
+                newNode->SetLink_Next(temp->GetLink_Next());
+                temp->SetLink_Next(newNode);
+
+                int x = newNode->GetData();
+                newNode->SetData(temp->GetData());
+                temp->SetData(x);
+            }
+            
+            /*
+            CASE 2: temp points to NULL
+            - Make newNode point to NULL (just in case it isn't already, even though it should be)
+            - Make temp point to newNode
+            - Swap values of temp and newNode
+            */
+
+            else {
+                newNode->SetLink_Next(NULL);
+                temp->SetLink_Next(newNode);
+
+                int x = newNode->GetData();
+                newNode->SetData(temp->GetData());
+                temp->SetData(x);
+            }
+            cout << "   SUCCESSFULLY ADDED NODE TO LIST" << endl;
         }
         size++;
 
@@ -205,6 +249,48 @@ public:
     // (Here, "7" is bigger than n-1, so remove the tail. ) 
 
     void Remove(int idx) {
+        cout << "REMOVE NODE AT INDEX " << idx << endl;
+        /*
+        if (head == nullptr) { // if there is no head
+            // just do nothing i guess
+        } else
+        */
+        if (idx == 0) { // remove the head
+            if (head->GetLink_Next() != NULL) { // if head points to another node
+                head = head->GetLink_Next(); // new head
+            }
+            else {
+                head = NULL;
+            }
+        }
+        else if (idx > size - 1) { // index is too large; just remove the tail
+            Node* temp = head;
+            while (temp->GetLink_Next()->GetLink_Next() != NULL) {
+                temp = temp->GetLink_Next();
+            }
+            temp->SetLink_Next(NULL);
+        }
+        else { // Regular remove
+            /*
+            - Iterate through list until temp node is at index - 1
+            - If node at index + 1 is not NULL, then have temp point to that node
+            - Otherwise, have temp point to NULL
+            */
+            Node* temp = head;
+            for (int i = 0; i < idx-1; i++) {
+                temp = temp->GetLink_Next();
+            }
+
+            cout << "temp node is at index - 1, with value " << temp->GetData() << endl;
+            
+            if (temp->GetLink_Next()->GetLink_Next() != NULL) {
+                temp->SetLink_Next(temp->GetLink_Next()->GetLink_Next());
+            }
+            else {
+                temp->SetLink_Next(NULL);
+            }
+        }
+
         size--;
     };
 
@@ -231,7 +317,29 @@ public:
     // then new list = 2, 1, 7, 5. 
 
     void Reverse() {
+        /*
+        BEFORE:
+            [1]->[2]->[3]->NULL // [1] is the head
+        AFTER:
+            [1]<-[2]<-[3]<-NULL // [3] is the head
+        A linked list can easily be reversed not by rearranging the nodes, but by reversing the direction that the nodes point.
+        */
+        Node* prevNode = NULL;
+        Node* currNode = head;
+        Node* nextNode = NULL;
 
+        while (currNode != NULL) {
+            // store the value of the next node after currNode
+            nextNode = currNode->GetLink_Next();
+            // flip the direction that currNode points, from the next node in the list to the previous
+            currNode->SetLink_Next(prevNode);
+            // advance pointers
+            prevNode = currNode;
+            currNode = nextNode; // eventually, nextNode will be NULL, which passes to currNode, which ends the loop
+        }
+        // Finally, our tail needs to be designated as the new head. 
+        // Since currNode is NULL, the preceding node prevNode is our new head.
+        head = prevNode;
     };
 };
 // methods below are already provided
