@@ -430,7 +430,7 @@ Node* MergeSort(Node* ptr) { // Input is head pointer
     leftList = MergeSort(leftList);
     rightList = MergeSort(rightList);
 
-    cout << "Passed recursive sorting." << endl;
+    cout << "Passed recursive sorting. Now leftList and rightList can be merged." << endl;
 
     /*
     * Finally, merge leftList and rightList together.
@@ -442,6 +442,23 @@ Node* MergeSort(Node* ptr) { // Input is head pointer
     * Then return finalList. MergeSort is complete.
     */
     
+    cout << "Just a recap: " << endl;
+    cout << "LEFT: ";
+    x = leftList;
+    while (x != NULL) {
+        cout << x->GetData();
+        x = x->GetLink_Next();
+    }
+    cout << endl;
+    cout << "RIGHT: ";
+    x = rightList;
+    while (x != NULL) {
+        cout << x->GetData();
+        x = x->GetLink_Next();
+    }
+    cout << endl;
+
+    // Create SListLEFT.
     SList SListLEFT;
     SListLEFT.SetHead(leftList);
     cout << "leftList size: " << SListLEFT.GetSize() << endl;
@@ -453,10 +470,11 @@ Node* MergeSort(Node* ptr) { // Input is head pointer
             }
             cout << endl;
 
+    // Create SListRIGHT.
     SList SListRIGHT;
     SListRIGHT.SetHead(rightList);
     cout << "rightList size: " << SListRIGHT.GetSize() << endl;
-            cout << "Current leftList: ";
+            cout << "Current rightList: ";
             x = SListRIGHT.GetHead();
             while (x != NULL) {
                 cout << x->GetData();
@@ -465,10 +483,10 @@ Node* MergeSort(Node* ptr) { // Input is head pointer
             cout << endl;
 
     SList SListFINAL;
-    Node* finalList = new Node(); 
-    SListFINAL.SetHead(finalList); 
-    cout << "SListFINAL has a head of " << finalList->GetData() << endl;
-    cout << "SListFINAL has a size of " << SListFINAL.GetSize() << endl;
+    //Node* finalList = new Node(); 
+    //SListFINAL.SetHead(finalList); 
+    // cout << "SListFINAL has a head of " << finalList->GetData() << endl;
+    // cout << "SListFINAL has a size of " << SListFINAL.GetSize() << endl;
 
     Node* search; // This node iterates through leftList and rightList
 
@@ -476,9 +494,9 @@ Node* MergeSort(Node* ptr) { // Input is head pointer
     while (SListLEFT.GetSize() != 0 && SListRIGHT.GetSize() != 0) {
                
         // Find smallest value in leftList
-        search = leftList;
+        search = SListLEFT.GetHead(); // modded mirror
         int leftIdx = 0;
-        int leftSmallest = leftList->GetData();
+        int leftSmallest = SListLEFT.GetHead()->GetData();
         int leftSmallestIdx = 0;
         while (search != NULL) {
             if (search->GetData() < leftSmallest) {
@@ -490,9 +508,9 @@ Node* MergeSort(Node* ptr) { // Input is head pointer
         }
 
         // Find smallest value in rightList
-        search = rightList;
+        search = SListRIGHT.GetHead();
         int rightIdx = 0;
-        int rightSmallest = rightList->GetData();
+        int rightSmallest = SListRIGHT.GetHead()->GetData();
         int rightSmallestIdx = 0;
         while (search != NULL) {
             if (search->GetData() < leftSmallest) {
@@ -507,7 +525,7 @@ Node* MergeSort(Node* ptr) { // Input is head pointer
         // Add the smallest value to the tail of SListFINAL and remove it from the original list.
         if (leftSmallest < rightSmallest) {
             cout << "Smallest value found: " << leftSmallest << endl;
-            if (SListFINAL.GetHead()->GetData() == 0) { // if SListFINAL is empty so far
+            if (SListFINAL.GetSize() == 0) { // if SListFINAL is empty so far
                 Node* newHead = new Node();
                 newHead->SetData(leftSmallest);
                 SListFINAL.SetHead(newHead);
@@ -517,10 +535,18 @@ Node* MergeSort(Node* ptr) { // Input is head pointer
                 SListFINAL.Add(leftSmallest, SListFINAL.GetSize());
             }
             SListLEFT.Remove(leftSmallestIdx);
+            cout << "removed " << leftSmallest << " from SListLEFT" << endl;
+            cout << " New SListLEFT: ";
+            x = SListLEFT.GetHead();
+            while (x != NULL) {
+                cout << x->GetData();
+                x = x->GetLink_Next();
+            }
+            cout << endl;
         }
         else {
             cout << "Smallest value found: " << rightSmallest << endl;
-            if (SListFINAL.GetHead()->GetData() == 0) { // if SListFINAL is empty so far
+            if (SListFINAL.GetSize() == 0) { // if SListFINAL is empty so far
                 Node* newHead = new Node();
                 newHead->SetData(rightSmallest);
                 SListFINAL.SetHead(newHead);
@@ -529,8 +555,15 @@ Node* MergeSort(Node* ptr) { // Input is head pointer
             else {
                 SListFINAL.Add(rightSmallest, SListFINAL.GetSize());
             }
-
             SListRIGHT.Remove(rightSmallestIdx);
+            cout << "removed " << rightSmallest << " from SListRIGHT" << endl;
+            cout << " New SListRIGHT: ";
+            x = SListRIGHT.GetHead();
+            while (x != NULL) {
+                cout << x->GetData();
+                x = x->GetLink_Next();
+            }
+            cout << endl;
         }
     }
 
@@ -553,7 +586,7 @@ Node* MergeSort(Node* ptr) { // Input is head pointer
             }
             cout << endl;
     // Now we can return finalList.
-    return finalList;
+    return SListFINAL.GetHead(); // don't return finalList? why not???
 }
 
 
