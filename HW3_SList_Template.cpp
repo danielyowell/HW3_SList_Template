@@ -66,7 +66,7 @@ Node* Node::GetLink_Next() {
 class SList {
 private:
     Node* head;
-    int size = 0; // DY: I added this. Should it be 0 or 1???
+    int size = 0; // New private field. Starts at 0, since the head starts as null. Increments and decrements as nodes are added/removed.
 public:
     // The following four functions are given to you. 
     // The SetHead and GetHead functions are only useful for merge sort.
@@ -88,7 +88,17 @@ public:
     // then GetSize() returns 4. 
     
     int GetSize() {
-        return size;
+        if (head == nullptr) {
+            return 0;
+        }
+        int idx = 0;
+        Node* i = head;
+        while (i != NULL) {
+            i = i->GetLink_Next();
+            idx++;
+        }
+        return idx;
+        //return size;
     };
 
     // *************************
@@ -109,14 +119,12 @@ public:
     int LinearSearch(int key) {
         Node* SearchNode = GetHead(); // start at head
         int i = 0;
-        cout << "Looking for: " << endl;
+
         while (SearchNode->GetLink_Next() != NULL) { // keep searching until null pointer reached
             if (SearchNode->GetData() == key) {
-                cout << "Found: " << SearchNode->GetData() << endl;
                 return i;
             }
             else {
-                cout << "Not found: " << SearchNode->GetData() << endl;
                 i++;
                 SearchNode = SearchNode->GetLink_Next(); // set SearchNode to the next node in the list
             }
@@ -152,40 +160,31 @@ public:
         
         Node* newNode = new Node();
         newNode->SetData(val);
-        cout << "New node with value " << newNode->GetData() << endl;
 
         if (head == nullptr) { // if there is no head
             head = newNode; // set newNode as the head
         }
         else if (idx > size - 1) { // node goes at end of list
             
-            cout << "   Node goes at end of list" << endl;
             Node* temp = head;
-            cout << "   head is " << temp->GetData() << endl;
 
             while (temp->GetLink_Next() != NULL) {
-                temp = temp->GetLink_Next();
-                cout << "   iterating thru list, current data: " << temp->GetData() << endl;    
+                temp = temp->GetLink_Next();  
             }
 
-            cout << "   next node is null." << endl;
             temp->SetLink_Next(newNode);
             newNode->SetLink_Next(NULL); // shouldn't be necessary, but just in case
-            
-            cout << "   SUCCESSFULLY ADDED NODE TO END OF LIST (large index)" << endl;
+          
 
         }
         else { // add node somewhere before end of list
-            cout << "   Add node somewhere before end of list" << endl;
+
             Node* temp = head;
             for (int i = 0; i < idx; i++) {
                 temp = temp->GetLink_Next();
-                cout << "   iterating thru list, current data: " << temp->GetData() << endl;
             }
             
-            cout << "   temp node represents node at index; has value " << temp->GetData() << endl;
-            cout << "   newNode has value " << newNode->GetData() << endl;
-            cout << "   We want to insert newNode where temp is and have it connect to temp" << endl;
+            // We want to insert newNode where temp is and have it connect to temp
             
             /*
             CASE 1: temp points to another node
@@ -218,9 +217,8 @@ public:
                 newNode->SetData(temp->GetData());
                 temp->SetData(x);
             }
-            cout << "   SUCCESSFULLY ADDED NODE TO LIST" << endl;
         }
-        size++;
+        size = GetSize(); // update size
 
     };
 
@@ -249,12 +247,7 @@ public:
     // (Here, "7" is bigger than n-1, so remove the tail. ) 
 
     void Remove(int idx) {
-        cout << "REMOVE NODE AT INDEX " << idx << endl;
-        /*
-        if (head == nullptr) { // if there is no head
-            // just do nothing i guess
-        } else
-        */
+
         if (idx == 0) { // remove the head
             if (head->GetLink_Next() != NULL) { // if head points to another node
                 head = head->GetLink_Next(); // new head
@@ -280,8 +273,6 @@ public:
             for (int i = 0; i < idx-1; i++) {
                 temp = temp->GetLink_Next();
             }
-
-            cout << "temp node is at index - 1, with value " << temp->GetData() << endl;
             
             if (temp->GetLink_Next()->GetLink_Next() != NULL) {
                 temp->SetLink_Next(temp->GetLink_Next()->GetLink_Next());
@@ -290,8 +281,7 @@ public:
                 temp->SetLink_Next(NULL);
             }
         }
-
-        size--;
+        size = GetSize(); // update size
     };
 
     // *************
@@ -321,7 +311,7 @@ public:
         BEFORE:
             [1]->[2]->[3]->NULL // [1] is the head
         AFTER:
-            [1]<-[2]<-[3]<-NULL // [3] is the head
+            NULL<-[1]<-[2]<-[3] // [3] is the head
         A linked list can easily be reversed not by rearranging the nodes, but by reversing the direction that the nodes point.
         */
         Node* prevNode = NULL;
@@ -344,7 +334,7 @@ public:
 };
 // methods below are already provided
 SList::SList() {
-    head = NULL;
+    head = NULL; cout << "new SList constructed: head should be null" << endl;
 }
 void SList::Print() {
     Node* temp = head;
@@ -378,12 +368,192 @@ void SList::SetHead(Node* ptr) {
 // No array or vector can be used. 
 // Tip: it should be recursive. 
 // 
-Node* MergeSort(Node* ptr) {
+Node* MergeSort(Node* ptr) { // Input is head pointer
+    cout << "BEGIN MERGESORT" << endl;
+    SList SListTest;
+    SListTest.SetHead(ptr);
+    cout << "Size of input list: " << SListTest.GetSize() << endl;
+            cout << "Current list: ";
+            Node* x = SListTest.GetHead();
+            while (x != NULL) {
+                cout << x->GetData();
+                x = x->GetLink_Next();
+            }
+            cout << endl;
+    /*
+    * If our head pointer is NULL (size = 0) or if it points to NULL (size = 1), return ptr as it is. There's nothing to do.
+    */
 
-    // ...... 
-    // ...... 
-    Node* x{};
-    return x;
+    if (ptr == NULL || ptr->GetLink_Next() == NULL) {
+        return ptr;
+    }
+    cout << "Linked list has a size of 2 or greater. :)" << endl;
+    /*
+    * Split the linked list into a left list and a right list.
+    * For this, we use a slow pointer (starting at node 0) and a fast pointer (starting at node 1).
+    * The fast pointer progresses through the list twice as fast as the slow pointer.
+    * 
+    *    S    F
+    *         S         F
+    *              S              F
+    *   [0]->[1]->[2]->[3]->[4]->NULL           // example linked list with 5 elements
+    *   [0]->[1]->[2]->[3]->[4]->[5]->NULL      // example linked list with 6 elements
+    * 
+    * The slow pointer only advances whenever the fast pointer can advance two nodes without reaching NULL.
+    * This means the slow pointer will have arrived right before the midpoint of the list.
+    * To create the right list, a new node object is assigned to the midpoint. This node is the right list's head. 
+    * The slow pointer's node is then set to point to NULL. This node is now the left list's tail, fully dividing the original list in two.
+    * Even-sized lists will be divided into equal sublists. Odd-sized lists will give the middle element to the left list.
+    */ 
+    
+    Node* slow = ptr;
+    Node* fast = ptr->GetLink_Next();
+
+    while (fast != NULL) {
+        fast = fast->GetLink_Next(); // original code contains one GetLink and adds the commented line below
+        if (fast != NULL) {
+            slow = slow->GetLink_Next();
+            fast = fast->GetLink_Next();
+        }
+    }
+
+    Node* leftList = ptr; // left list starts at head
+    Node* rightList = slow->GetLink_Next(); // right list starts at midpoint
+    slow->SetLink_Next(NULL);
+
+    cout << "Successfully divided into leftList and rightList. Probably." << endl;
+
+    /*
+    * Next, recursively apply merge sort to leftList and rightList.
+    */
+
+    leftList = MergeSort(leftList);
+    rightList = MergeSort(rightList);
+
+    cout << "Passed recursive sorting." << endl;
+
+    /*
+    * Finally, merge leftList and rightList together.
+    * 
+    * First, find the smallest value and assign it as the head of finalList.
+    * Then, remove it from the list where it was found.
+    * Continue to find the smallest values, assign them to the tail of finalList, and remove them from their respective lists.
+    * When either leftList or rightList is depleted, add all of the remaining list to finalList.
+    * Then return finalList. MergeSort is complete.
+    */
+    
+    SList SListLEFT;
+    SListLEFT.SetHead(leftList);
+    cout << "leftList size: " << SListLEFT.GetSize() << endl;
+            cout << "Current leftList: ";
+            x = SListLEFT.GetHead();
+            while (x != NULL) {
+                cout << x->GetData();
+                x = x->GetLink_Next();
+            }
+            cout << endl;
+
+    SList SListRIGHT;
+    SListRIGHT.SetHead(rightList);
+    cout << "rightList size: " << SListRIGHT.GetSize() << endl;
+            cout << "Current leftList: ";
+            x = SListRIGHT.GetHead();
+            while (x != NULL) {
+                cout << x->GetData();
+                x = x->GetLink_Next();
+            }
+            cout << endl;
+
+    SList SListFINAL;
+    Node* finalList = new Node(); 
+    SListFINAL.SetHead(finalList); 
+    cout << "SListFINAL has a head of " << finalList->GetData() << endl;
+    cout << "SListFINAL has a size of " << SListFINAL.GetSize() << endl;
+
+    Node* search; // This node iterates through leftList and rightList
+
+    // Repeat until either leftList or rightList is empty
+    while (SListLEFT.GetSize() != 0 && SListRIGHT.GetSize() != 0) {
+               
+        // Find smallest value in leftList
+        search = leftList;
+        int leftIdx = 0;
+        int leftSmallest = leftList->GetData();
+        int leftSmallestIdx = 0;
+        while (search != NULL) {
+            if (search->GetData() < leftSmallest) {
+                leftSmallest = search->GetData();
+                leftSmallestIdx = leftIdx;
+            }
+            search = search->GetLink_Next();
+            leftIdx++;
+        }
+
+        // Find smallest value in rightList
+        search = rightList;
+        int rightIdx = 0;
+        int rightSmallest = rightList->GetData();
+        int rightSmallestIdx = 0;
+        while (search != NULL) {
+            if (search->GetData() < leftSmallest) {
+                leftSmallest = search->GetData();
+                leftSmallestIdx = leftIdx;
+            }
+            search = search->GetLink_Next();
+            leftIdx++;
+        }
+
+        // Compare smallest values of each list. 
+        // Add the smallest value to the tail of SListFINAL and remove it from the original list.
+        if (leftSmallest < rightSmallest) {
+            cout << "Smallest value found: " << leftSmallest << endl;
+            if (SListFINAL.GetHead()->GetData() == 0) { // if SListFINAL is empty so far
+                Node* newHead = new Node();
+                newHead->SetData(leftSmallest);
+                SListFINAL.SetHead(newHead);
+                cout << "SListFINAL once had a head of 0, but now is the new smallest: " << leftSmallest << endl;
+            }
+            else {
+                SListFINAL.Add(leftSmallest, SListFINAL.GetSize());
+            }
+            SListLEFT.Remove(leftSmallestIdx);
+        }
+        else {
+            cout << "Smallest value found: " << rightSmallest << endl;
+            if (SListFINAL.GetHead()->GetData() == 0) { // if SListFINAL is empty so far
+                Node* newHead = new Node();
+                newHead->SetData(rightSmallest);
+                SListFINAL.SetHead(newHead);
+                cout << "SListFINAL once had a head of 0, but now is the new smallest: " << rightSmallest << endl;
+            }
+            else {
+                SListFINAL.Add(rightSmallest, SListFINAL.GetSize());
+            }
+
+            SListRIGHT.Remove(rightSmallestIdx);
+        }
+    }
+
+    // Finally, find whichever list is not yet empty and add its remaining contents to finalList.
+    
+    while (SListLEFT.GetSize() != 0) {    
+        SListFINAL.Add(SListLEFT.GetHead()->GetData(), SListFINAL.GetSize());
+        SListLEFT.Remove(0);
+    }
+    while (SListRIGHT.GetSize() != 0) {
+        SListFINAL.Add(SListRIGHT.GetHead()->GetData(), SListFINAL.GetSize());
+        SListRIGHT.Remove(0);
+    }
+    cout << "Final list size: " << SListFINAL.GetSize() << endl;
+            cout << "Current final list: ";
+            x = SListFINAL.GetHead();
+            while (x != NULL) {
+                cout << x->GetData();
+                x = x->GetLink_Next();
+            }
+            cout << endl;
+    // Now we can return finalList.
+    return finalList;
 }
 
 
@@ -402,13 +572,10 @@ int main()
     cin >> mode >> value >> idx >> key; // mode, value, index, key
 
     for (int i = 0; i < 4; i++) {
-        cout << "Add new node at index 0" << endl;
         cin >> temp;
         x.Add(temp, 0);
     } 
-    cout << "head data: " << x.GetHead()->GetData() << endl;
-    cout << "next node data: " << x.GetHead()->GetLink_Next()->GetData() << endl;
-    cout << "PRINT:" << endl;
+    
     switch (mode) {
 
     case 1: // check your add function with idx = 0
